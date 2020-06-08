@@ -61,6 +61,5 @@ function showHelp()
     console.log("");
     console.log("Options:");
     console.log("-h, --help \t\t Prints help.");  
-    console.log("-m, --minify \t\t Enables the minify option. This will minify the destination file.");
-    console.log("");
+   console.log("");
 }
