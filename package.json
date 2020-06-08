@@ -1,7 +1,7 @@
 {
   "name": "ccatjs",
   "version": "1.0.1",
-  "description": "Concatenate (and minify) javascript files.",
+  "description": "Concatenate javascript files.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
