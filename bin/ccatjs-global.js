@@ -9,13 +9,12 @@ var args = process.argv.splice(2);
 // Vars.
 var _entryFile;
 var _destFile;
-var _minify = false;
 
 // Process args.
 processArgs();
 
 // Process ccatjs.
-lib.concatJs(_entryFile, _destFile, _minify);
+lib.concatJs(_entryFile, _destFile);
 
 function processArgs()
 {
@@ -45,9 +44,6 @@ function processArgs()
 
     // Set destFile.
     _destFile = args[1];
-
-    // Set minify.
-    _minify = args.indexOf("-m") != -1 || args.indexOf("--minify") != -1;
 
 }
 
