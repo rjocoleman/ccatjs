@@ -84,3 +84,25 @@ function main() {
     var specialArray = getSpecialArray();
 }
 ```
+
+## Output results
+
+*Success:*
+
+```diff
++ Succesfully concatenated 4 files. 
+ ```
+
+*Errors:*
+
+Error checks:
+- Non existing references.
+- Multiple references.
+
+Errors are reported including filename and linenumber.
+
+```diff
+- File reference: `../file3.js` cannot be found. File `main.js`. Line: `22`. 
+
+- File reference: `../file4.js` imported before. File can only be imported once per output file. File `main.js`. Line: `27`. 
+```
