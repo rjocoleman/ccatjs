@@ -129,7 +129,7 @@ function writeFile(fname, content) {
     var pth = path.dirname(fname);
 
     if (!fs.existsSync(pth)) {
-        fs.mkdirSync(pth);
+        fs.mkdirSync(pth, { recursive: true });
     }
 
     fs.writeFileSync(fname, content.toString());

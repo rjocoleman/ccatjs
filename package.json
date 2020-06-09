@@ -1,6 +1,6 @@
 {
   "name": "ccatjs",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Concatenate javascript files.",
   "main": "index.js",
   "scripts": {
