@@ -1,11 +1,11 @@
 # ccatjs
-Concatenate different javascript files using easy in-file comments.
+Concatenate different javascript files using easy in-file @import comments.
 
 ## Prerequisites
 nodejs and npm installed.
 
 ## Installing
-Install the ccatjs package using the node package manager like so:
+Install the ccatjs package using npm:
 ```bash
 npm install ccatjs -g
 ```
@@ -13,7 +13,7 @@ npm install ccatjs -g
 ## Usage
 Asume a javascript project consisting of mulitiple js files in multiple directories.
 
-To include a javascript file inside another, just use the following comment:
+To include a javascript file inside another, use:
 
 ```js
 // @import: file.js
@@ -87,13 +87,12 @@ function main() {
 
 ## Output results
 
-*Success:*
+**Success:**
 
 ```diff
 + Succesfully concatenated 4 files. 
- ```
-
-*Errors:*
+```
+**Errors:**
 
 Error checks:
 - Non existing references.
@@ -106,3 +105,6 @@ Errors are reported including filename and linenumber.
 
 - File reference: `../file4.js` imported before. File can only be imported once per output file. File `main.js`. Line: `27`. 
 ```
+
+## License
+This project is licensed under the MIT License.
