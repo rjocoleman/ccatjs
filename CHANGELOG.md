@@ -1,6 +1,6 @@
 # Changelog
 
-# 2.1.0
+## 2.1.0
 - Added: -s, --silent options to run silently if no errors occur.
 
 ## 2.0.1
