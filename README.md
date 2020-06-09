@@ -22,7 +22,7 @@ To include a javascript file inside another, use the `@import: file.js` statemen
 // @import: file.js
 ```
 
-Example:
+Example: (see test/ folder in repository)
 
 src/main.js
 ```js
