@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-exports.concatJs = function (entryFile, destinationFile) {
+exports.concatJs = function (entryFile, destinationFile, silent) {
 
     // Validate import statements.
     validateImportStatements(entryFile);
@@ -13,9 +13,10 @@ exports.concatJs = function (entryFile, destinationFile) {
     writeFile(destinationFile, result.toString());
 
     // OK.
-    console.log();
-    consoleSuccess(`Successfully concatenated ${_valFiles.length} files.`);
-
+    if (!silent) {
+        console.log();
+        consoleSuccess(`Successfully concatenated ${_valFiles.length} files.`);
+    }
 }
 
 var _valFiles = [];

@@ -9,12 +9,13 @@ var args = process.argv.splice(2);
 // Vars.
 var _entryFile;
 var _destFile;
+var _silent = false;
 
 // Process args.
 processArgs();
 
 // Process ccatjs.
-lib.concatJs(_entryFile, _destFile);
+lib.concatJs(_entryFile, _destFile, _silent);
 
 function processArgs()
 {
@@ -22,22 +23,29 @@ function processArgs()
     {
 
         // Help.
-        if (args.indexOf("-h") != -1 || args.indexOf("--help") != -1)
+        if (hasAnyArgs("-h", "--help"))
         {
             showHelp();
             process.exit();
         }
 
         // Version.
-        if (args.indexOf("-v") != -1 || args.indexOf("--version") != -1)
+        if (hasAnyArgs("-v", "--version"))
         {
             showVersion();
             process.exit();
         }
+
+        // Silent.
+        if (hasAnyArgs("-s", "--silent"))
+        {
+            _silent = true;
+        }
+
     }
 
     // Minimal two required.
-    if (args.lenght < 2) {
+    if (args.length < 2) {
         console.error("Missing required arguments. Use -h or --help for help.");
         process.exit(1);
     }
@@ -54,6 +62,23 @@ function processArgs()
 
 }
 
+function hasAnyArgs()
+{
+    if (arguments.length == 0) return false;
+
+    for (var i = 0; i < arguments.length; i++)
+    {
+        if (hasArg(arguments[i])) return true;
+    }
+
+    return false;
+}
+
+function hasArg(arg)
+{
+    return args.indexOf(arg) != -1;    
+}
+
 function showHelp()
 {
     console.log("");
@@ -64,7 +89,8 @@ function showHelp()
     console.log("");
     console.log("Options:");
     console.log("-h, --help \t\t Prints help.");
-    console.log("-v, --version \t\t Prints current version.");  
+    console.log("-v, --version \t\t Prints current version.");
+    console.log("-s, --silent \t\t Runs silent when no errors occur.");    
     console.log("");
 }
 
