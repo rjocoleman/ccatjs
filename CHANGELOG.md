@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0 - 2020-06-09
+- Changed: create destination directory if it does not exists.
+- Changed: @import filename paths must be relative to the containing file.
+
 ## 1.1.1 - 2020-06-09
 - Added: npm package.json file with correct keywords.
 

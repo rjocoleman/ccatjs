@@ -13,7 +13,10 @@ npm install ccatjs -g
 ## Usage
 Asume a javascript project consisting of mulitiple js files in multiple directories.
 
-To include a javascript file inside another, use:
+To include a javascript file inside another, use the `@import: file.js` statement in a javascript comment.
+
+### Path
+*IMPORTANT* The path specified in the `@import` statement must be relative to the containing file.
 
 ```js
 // @import: file.js
@@ -36,7 +39,7 @@ src/helpers/strings.js
 function getString() {
     return 'birds' + getString2();
 }
-// @import: helpers/strings2.js
+// @import: strings2.js
 ```
 
 src/helpers/strings2.js

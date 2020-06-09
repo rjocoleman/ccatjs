@@ -1,20 +1,16 @@
 const fs = require("fs");
+const path = require("path");
 
 exports.concatJs = function (entryFile, destinationFile) {
-
-    // Get file content.
-    var fileContent = getFileContent(entryFile);
 
     // Validate import statements.
     validateImportStatements(entryFile);
 
     // Concat.
-    var result = concat(fileContent);
-    var output = result.output;
-    var count = result.count;
+    var result = concatFiles(entryFile);
 
-    // Write dest file.
-    fs.writeFileSync(destinationFile, output.toString());
+    // Write destination file.
+    writeFile(destinationFile, result.toString());
 
     // OK.
     console.log();
@@ -27,57 +23,55 @@ var _valErrors = [];
 
 function validateImportStatements(entryFile) {
 
-    // Add entry file.
-    _valFiles.push(fs.realpathSync(entryFile));
+    // Get full file name.
+    var fullEntryFile = fs.realpathSync(entryFile);
 
-    // FileIndex.
-    var fi = 0;
+    // Add entry file.
+    _valFiles.push(fullEntryFile);
+
+    var fileIndex = 0;
 
     do {
 
-        var cfile = _valFiles[fi];
-        var content = getFileContent(cfile);
-        var lines = getLines(content);
-        var ln = 0;
+        var fullFileName = _valFiles[fileIndex];
+        var content = getFileContent(fullFileName);
+        var contentWithStaticFileRefs = relativeToStaticReferences(fullFileName, content);
+        var lines = getLines(contentWithStaticFileRefs);
+        var lineNumber = 0;
 
         do {
-            var sline = lines[ln];
+            var line = lines[lineNumber];
 
-            if (sline.indexOf("@import:") != -1) {
+            if (isImportLine(line)) {
 
-                // Get filename from import statement.            
-                var fn = getFnFromStatementLine(sline);
+                // Get filename from import statement.
+                var referenceFullFileName = getImportLineFileRef(line);
 
-                // Check if exists.
-                if (!fileExists(fn)) {
-                    _valErrors.push(`File reference: \`${fn}\` cannot be found. File \`${cfile}\`. Line: \`${ln + 1}\`.`);
+                // Check if file exists.
+                if (!fileExists(referenceFullFileName)) {
+                    _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
                 }
                 else {
 
-                    // Get file full path.
-                    var fpath = fs.realpathSync(fn).toLowerCase();
-
                     // Check if used before.
-                    if (_valFiles.indexOf(fpath) != -1) {
-                        _valErrors.push(`File reference: \`${fpath}\` imported before. File can only be imported once per output file. File \`${cfile}\`. Line: \`${ln + 1}\`.`);
+                    if (_valFiles.indexOf(referenceFullFileName) != -1) {
+                        _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File can only be imported once per output file. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
                     }
                     else {
-                        _valFiles.push(fpath);
+                        _valFiles.push(referenceFullFileName);
                     }
                 }
             }
-            ln++;
+            lineNumber++;
         }
-        while (ln < lines.length);
-
-        fi++;
+        while (lineNumber < lines.length);
+        fileIndex++;
     }
-    while (fi < _valFiles.length);
+    while (fileIndex < _valFiles.length);
 
     if (_valErrors.length > 0) {
 
-        for (var i = 0; i < _valErrors.length; i++)
-        {
+        for (var i = 0; i < _valErrors.length; i++) {
             consoleError(_valErrors[i]);
         }
         process.exit(1);
@@ -85,54 +79,84 @@ function validateImportStatements(entryFile) {
 
 }
 
-function concat(content) {
+function concatFiles(entryFile) {
 
-    // Concat by searching for the import
-    // statement on a line by line basis.
+    // Get full file name.
+    var fullEntryFile = fs.realpathSync(entryFile);
 
-    var lines = getLines(content);
-    var ln = 0;
+    var content = getFileContent(fullEntryFile);
+    var contentWithStaticFileRefs = relativeToStaticReferences(fullEntryFile, content);
+    var lines = getLines(contentWithStaticFileRefs);
+    var lineNumber = 0;
 
     do {
-        var sline = lines[ln];
+        var line = lines[lineNumber];
 
-        if (sline.indexOf("@import:") != -1) {
+        if (isImportLine(line)) {
 
-            var fn = getFnFromStatementLine(sline);
-            var newContent = getFileContent(fn);
-            var newLines = getLines(newContent);
+            var refFullFileName = getImportLineFileRef(line);
+            var newContent = getFileContent(refFullFileName);
+            var newContentWithStaticFileRefs = relativeToStaticReferences(refFullFileName, newContent);
+            var newLines = getLines(newContentWithStaticFileRefs);
 
-            // Remove the import statement line.
-            lines.splice(ln, 1);
+            // Remove reference line.
+            lines.splice(lineNumber, 1);
 
             // Insert the new lines.
             for (var i = 0; i < newLines.length; i++) {
-                lines.splice(ln + i, 0, newLines[i]);
+                lines.splice(lineNumber + i, 0, newLines[i]);
             }
 
         }
-        ln++;
+        lineNumber++;
     }
-    while (ln < lines.length - 1);
+    while (lineNumber < lines.length);
 
-    var result = {
-        output: joinLines(lines)
-    }
-
-    return result;
+    return joinLines(lines);
 
 }
 
-function getFnFromStatementLine(sline) {
+function isImportLine(line) {
+    return line.toString().indexOf("@import:") != -1;
+}
 
-    // Case: @import: filename.js
-    if (sline.indexOf("'") == -1 && sline.indexOf("\"") == -1) {
-        var sl = sline.replace(/ /g, "");
-        return sl.substring(sl.indexOf(":") + 1, sl.indexOf(".js") + 3);
+function getImportLineFileRef(line) {
+    var lineWithoutSpaces = line.replace(/ /g, "");
+    return lineWithoutSpaces.substring(lineWithoutSpaces.indexOf(":") + 1, lineWithoutSpaces.length);
+}
+
+function writeFile(fname, content) {
+    var pth = path.dirname(fname);
+
+    if (!fs.existsSync(pth)) {
+        fs.mkdirSync(pth);
     }
 
-    return "";
+    fs.writeFileSync(fname, content.toString());
 
+}
+
+function relativeToStaticReferences(fname, content) {
+
+    var dirname = path.dirname(fname);
+    var lines = getLines(content);
+
+    for (var i = 0; i < lines.length; i++) {
+
+        var line = lines[i];
+
+        if (isImportLine(line)) {
+
+            var relativeFileRef = getImportLineFileRef(line);
+            var staticFileRef = path.join(dirname, relativeFileRef);
+
+            lines[i] = `// @import: ${staticFileRef}`;
+
+        }
+
+    }
+
+    return joinLines(lines);
 }
 
 // Helper functions.
