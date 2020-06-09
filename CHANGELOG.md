@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0 - 2020-06-09
+- Added: -v, --version options to display the current version.
+
 ## 1.0.1 - 2020-06-09
 - Added: functionality: concatenation of files.
 - Added: validation: @import statement: uniqueness.

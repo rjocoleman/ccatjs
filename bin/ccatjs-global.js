@@ -27,6 +27,13 @@ function processArgs()
             showHelp();
             process.exit();
         }
+
+        // Version.
+        if (args.indexOf("-v") != -1 || args.indexOf("--version") != -1)
+        {
+            showVersion();
+            process.exit();
+        }
     }
 
     // Minimal two required.
@@ -56,6 +63,13 @@ function showHelp()
     console.log("<dest> \t\t The destination js file.");
     console.log("");
     console.log("Options:");
-    console.log("-h, --help \t\t Prints help.");  
-   console.log("");
+    console.log("-h, --help \t\t Prints help.");
+    console.log("-v, --version \t\t Prints current version.");  
+    console.log("");
+}
+
+function showVersion()
+{
+    var pk = require("../package.json");
+    console.log(pk.version);
 }
