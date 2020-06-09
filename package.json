@@ -1,6 +1,6 @@
 {
   "name": "ccatjs",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "Concatenate javascript files.",
   "main": "index.js",
   "scripts": {
@@ -16,8 +16,9 @@
   "keywords": [
     "Concatenate",
     "Concat",
-    "Javascript",
-    "Minify"
+    "Include",
+    "Import",
+    "Javascript"
   ],
   "author": "mustinherit",
   "license": "MIT",
