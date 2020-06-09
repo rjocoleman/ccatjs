@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.1
+- Fix: Removed unused dependencies.
+
 ## 2.1.0
 - Added: -s, --silent options to run silently if no errors occur.
 
