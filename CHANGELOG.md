@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.1
+- Changed: README.md changes.
+
 ## 3.0.0
 - Changed: syntax of the `@import` statement must now include parentheses.
 - Added: syntax validation of the `@import` statement.

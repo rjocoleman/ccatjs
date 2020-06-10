@@ -1,5 +1,5 @@
 # ccatjs
-Concatenate in-file references files using: `@import:(file.ex)` statements.
+Concatenate files using in-file @import: statements."
 
 ## Prerequisites
 nodejs and npm installed.
@@ -132,5 +132,5 @@ Errors are reported including filename and line number.
 This project is licensed under the MIT License.
 
 ## Todo
-- Change: Make `imported before` validation optional.
-- Add: Make `circular reference` validation.
+- Make `imported before` validation optional.
+- Make `circular reference` validation.
