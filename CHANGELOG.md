@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0
+- Changed: syntax of the `@import` statement must now include parentheses.
+- Added: syntax validation of the `@import` statement.
+
 ## 2.1.1
 - Fix: Removed unused dependencies.
 

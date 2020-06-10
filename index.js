@@ -48,18 +48,24 @@ function validateImportStatements(entryFile) {
                 // Get filename from import statement.
                 var referenceFullFileName = getImportLineFileRef(line);
 
-                // Check if file exists.
-                if (!fileExists(referenceFullFileName)) {
-                    _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                // Check import line syntax.
+                if (!isImportLineValid(line)) {
+                    _valErrors.push(`File reference malformed. Correct syntax is: @import:(path/file.ext). Notice parenthesis. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
                 }
                 else {
-
-                    // Check if used before.
-                    if (_valFiles.indexOf(referenceFullFileName) != -1) {
-                        _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File can only be imported once per output file. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                    // Check if file exists.
+                    if (!fileExists(referenceFullFileName)) {
+                        _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
                     }
                     else {
-                        _valFiles.push(referenceFullFileName);
+
+                        // Check if used before.
+                        if (_valFiles.indexOf(referenceFullFileName) != -1) {
+                            _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File can only be imported once per output file. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                        }
+                        else {
+                            _valFiles.push(referenceFullFileName);
+                        }
                     }
                 }
             }
@@ -121,9 +127,31 @@ function isImportLine(line) {
     return line.toString().indexOf("@import:") != -1;
 }
 
+function isImportLineValid(line) {
+    
+    var indx1 = line.indexOf("(");
+    var indx2 = line.indexOf(")");
+
+    // Missing parentheses.
+    if (indx1 == -1 || indx2 == -1) return false;
+
+    // @import:(file.ext)
+    if (indx1 - indx2 < -1) return true;
+
+    return false;
+}
+
 function getImportLineFileRef(line) {
     var lineWithoutSpaces = line.replace(/ /g, "");
-    return lineWithoutSpaces.substring(lineWithoutSpaces.indexOf(":") + 1, lineWithoutSpaces.length);
+    return lineWithoutSpaces.substring(lineWithoutSpaces.indexOf("@import:(") + 9, lineWithoutSpaces.indexOf(")"));
+}
+
+function setImportLineFileRef(line, fileRef) {
+    var lineWithoutSpaces = line.replace(/ /g, "");
+    var startIndex = lineWithoutSpaces.indexOf("@import:(") + 9;
+    var endIndex = lineWithoutSpaces.indexOf(")");
+    var newImportLine = lineWithoutSpaces.substring(0, startIndex) + fileRef + lineWithoutSpaces.substring(endIndex, lineWithoutSpaces.length);
+    return newImportLine;
 }
 
 function writeFile(fname, content) {
@@ -151,7 +179,7 @@ function relativeToStaticReferences(fname, content) {
             var relativeFileRef = getImportLineFileRef(line);
             var staticFileRef = path.join(dirname, relativeFileRef);
 
-            lines[i] = `// @import: ${staticFileRef}`;
+            lines[i] = setImportLineFileRef(line, staticFileRef);
 
         }
 

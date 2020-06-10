@@ -1,5 +1,5 @@
 # ccatjs
-Concatenate different javascript files using easy in-file @import comments.
+Concatenate in-file references files using: `@import:(file.ex)` statements.
 
 ## Prerequisites
 nodejs and npm installed.
@@ -11,16 +11,34 @@ npm install ccatjs -g
 ```
 
 ## Usage
-Asume a javascript project consisting of mulitiple js files in multiple directories.
+Assume a project containing multiple files in multiple directories.
 
-To include a javascript file inside another, use the `@import: file.js` statement in a javascript comment.
+To include a file inside another, use `@import:(file.js)` on a (comment) line.
 
 ### Path
-*IMPORTANT* The path specified in the `@import` statement must be relative to the containing file.
+*IMPORTANT* The path specified in the `@import:` statement must be relative to the containing file.
 
+js
 ```js
-// @import: file.js
+// @import:(file.js)
 ```
+
+html
+```html
+<!-- @import:(file.html) -->
+```
+
+css
+```css
+/* @import:(file.css) */
+```
+
+etc
+```
+@import:(file.txt) 
+```
+
+As long as the string `@import:(<yourfile>)` is found the line gets replaced by the referenced file content.
 
 Example: (see test/ folder in repository)
 
@@ -93,15 +111,16 @@ function main() {
 **Success:**
 
 ```diff
-+ Succesfully concatenated 4 files. 
++ Successfully concatenated 4 files. 
 ```
 **Errors:**
 
 Error checks:
+- Syntax.
 - Non existing references.
-- Multiple references.
+- Imported before.
 
-Errors are reported including filename and linenumber.
+Errors are reported including filename and line number.
 
 ```diff
 - File reference: `../file3.js` cannot be found. File `main.js`. Line: `22`. 
@@ -111,3 +130,7 @@ Errors are reported including filename and linenumber.
 
 ## License
 This project is licensed under the MIT License.
+
+## Todo
+- Change: Make `imported before` validation optional.
+- Add: Make `circular reference` validation.

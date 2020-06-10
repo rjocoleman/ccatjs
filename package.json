@@ -1,7 +1,7 @@
 {
   "name": "ccatjs",
-  "version": "2.1.1",
-  "description": "Concatenate javascript files.",
+  "version": "3.0.0",
+  "description": "Concatenate files using in-file @import: statements.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,7 +18,8 @@
     "Concat",
     "Include",
     "Import",
-    "Javascript"
+    "File",
+    "Join"
   ],
   "author": "mustinherit",
   "license": "MIT",
