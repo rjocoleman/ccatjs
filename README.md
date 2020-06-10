@@ -1,5 +1,5 @@
 # ccatjs
-Concatenate files using in-file @import: statements."
+Concatenate files using in-file @import: statements.
 
 ## Prerequisites
 nodejs and npm installed.
