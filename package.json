@@ -1,6 +1,6 @@
 {
   "name": "ccatjs",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Concatenate files using in-file @import: statements.",
   "main": "index.js",
   "scripts": {
