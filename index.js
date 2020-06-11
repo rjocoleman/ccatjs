@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 
-exports.concatJs = function (entryFile, destinationFile, silent) {
+exports.concatJs = function (entryFile, destinationFile, silent, unique) {
 
     // Validate import statements.
-    validateImportStatements(entryFile);
+    validateImportStatements(entryFile, unique);
 
     // Concat.
     var result = concatFiles(entryFile);
@@ -15,30 +15,31 @@ exports.concatJs = function (entryFile, destinationFile, silent) {
     // OK.
     if (!silent) {
         console.log();
-        consoleSuccess(`Successfully concatenated ${_valFiles.length} files.`);
+        consoleSuccess(`Successfully concatenated ${_valFiles.length} entries.`);
     }
 }
 
 var _valFiles = [];
 var _valErrors = [];
 
-function validateImportStatements(entryFile) {
+function validateImportStatements(entryFile, uniqueOpt) {
 
     // Get full file name.
     var fullEntryFile = fs.realpathSync(entryFile);
 
     // Add entry file.
-    _valFiles.push(fullEntryFile);
+    _valFiles.push(new pair(null, fullEntryFile));
 
     var fileIndex = 0;
 
     do {
 
-        var fullFileName = _valFiles[fileIndex];
+        var fullFileName = _valFiles[fileIndex].child;
         var content = getFileContent(fullFileName);
         var contentWithStaticFileRefs = relativeToStaticReferences(fullFileName, content);
         var lines = getLines(contentWithStaticFileRefs);
         var lineNumber = 0;
+        var parent = fullFileName;
 
         do {
             var line = lines[lineNumber];
@@ -47,27 +48,47 @@ function validateImportStatements(entryFile) {
 
                 // Get filename from import statement.
                 var referenceFullFileName = getImportLineFileRef(line);
+                var child = referenceFullFileName;
 
                 // Check import line syntax.
                 if (!isImportLineValid(line)) {
                     _valErrors.push(`File reference malformed. Correct syntax is: @import:(path/file.ext). Notice parenthesis. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                    lineNumber++;
+                    continue;
                 }
-                else {
-                    // Check if file exists.
-                    if (!fileExists(referenceFullFileName)) {
-                        _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                    }
-                    else {
 
-                        // Check if used before.
-                        if (_valFiles.indexOf(referenceFullFileName) != -1) {
-                            _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File can only be imported once per output file. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                        }
-                        else {
-                            _valFiles.push(referenceFullFileName);
-                        }
-                    }
+                // Check if file exists.
+                if (!fileExists(referenceFullFileName)) {
+                    _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                    lineNumber++;
+                    continue;
                 }
+
+                if (uniqueOpt) {
+
+                    // Check if used before.
+                    if (containsChild(_valFiles, referenceFullFileName)) {
+                        _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                        lineNumber++;
+                        break;
+                    }
+
+                }
+
+                // Check for circular reference.
+                var pairReversed = new pair(child, parent);
+                if (containsPair(_valFiles, pairReversed)) {
+                    _valErrors.push(`File reference: \`${referenceFullFileName}\` causes circular reference. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
+                    lineNumber++;
+                    continue;
+                }
+
+                // If here, all is fine.
+                // =====
+
+                var p = new pair(parent, child);
+                _valFiles.push(p);
+
             }
             lineNumber++;
         }
@@ -81,6 +102,7 @@ function validateImportStatements(entryFile) {
         for (var i = 0; i < _valErrors.length; i++) {
             consoleError(_valErrors[i]);
         }
+
         process.exit(1);
     }
 
@@ -100,7 +122,6 @@ function concatFiles(entryFile) {
         var line = lines[lineNumber];
 
         if (isImportLine(line)) {
-
             var refFullFileName = getImportLineFileRef(line);
             var newContent = getFileContent(refFullFileName);
             var newContentWithStaticFileRefs = relativeToStaticReferences(refFullFileName, newContent);
@@ -115,7 +136,9 @@ function concatFiles(entryFile) {
             }
 
         }
-        lineNumber++;
+        else {
+            lineNumber++;
+        }
     }
     while (lineNumber < lines.length);
 
@@ -124,11 +147,12 @@ function concatFiles(entryFile) {
 }
 
 function isImportLine(line) {
-    return line.toString().indexOf("@import:") != -1;
+    var r = line.toString().indexOf("@import:") != -1;
+    return r;
 }
 
 function isImportLineValid(line) {
-    
+
     var indx1 = line.indexOf("(");
     var indx2 = line.indexOf(")");
 
@@ -226,4 +250,27 @@ function consoleError(msg) {
 function consoleMsg(bg, fg, msg) {
     console.log(bg, fg, msg, '\x1b[0m');
     console.log('\n');
+}
+
+class pair {
+    constructor(parent, child) {
+        this.parent = parent;
+        this.child = child;
+    }
+    equals(p) {
+        return (this.parent === p.parent && this.child === p.child);
+    }
+}
+
+function containsPair(a, p) {
+    for (var i = 0; i < a.length; i++) {
+        if (a[i].equals(p)) return true;
+    }
+    return false;
+}
+
+function containsChild(a, c) {
+    for (var i = 0; i < a.length; i++) {
+        if (a[i].child === c) return true;
+    }
 }

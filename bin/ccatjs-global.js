@@ -10,12 +10,13 @@ var args = process.argv.splice(2);
 var _entryFile;
 var _destFile;
 var _silent = false;
+var _unique = false;
 
 // Process args.
 processArgs();
 
 // Process ccatjs.
-lib.concatJs(_entryFile, _destFile, _silent);
+lib.concatJs(_entryFile, _destFile, _silent, _unique);
 
 function processArgs()
 {
@@ -34,6 +35,12 @@ function processArgs()
         {
             showVersion();
             process.exit();
+        }
+
+        // Unique.
+        if (hasAnyArgs("-u", "--unique"))
+        {
+            _unique = true;
         }
 
         // Silent.
@@ -90,6 +97,7 @@ function showHelp()
     console.log("Options:");
     console.log("-h, --help \t\t Prints help.");
     console.log("-v, --version \t\t Prints current version.");
+    console.log("-u, --unique \t\t Enables check to see if all file references are unique.");
     console.log("-s, --silent \t\t Runs silent when no errors occur.");    
     console.log("");
 }

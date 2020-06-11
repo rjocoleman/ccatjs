@@ -2,7 +2,7 @@
 Concatenate files using in-file @import: statements.
 
 ## Prerequisites
-nodejs and npm installed.
+NodeJS and npm installed
 
 ## Installing
 Install the ccatjs package using npm:
@@ -44,8 +44,8 @@ Example: (see test/ folder in repository)
 
 src/main.js
 ```js
-// @import: helpers/strings.js
-// @import: helpers/arrays.js
+// @import:(helpers/strings.js)
+// @import:(helpers/arrays.js)
 function main() {
     var specialString = getString();
     var specialArray = getSpecialArray();
@@ -57,7 +57,7 @@ src/helpers/strings.js
 function getString() {
     return 'birds' + getString2();
 }
-// @import: strings2.js
+// @import:(strings2.js)
 ```
 
 src/helpers/strings2.js
@@ -111,7 +111,7 @@ function main() {
 **Success:**
 
 ```diff
-+ Successfully concatenated 4 files. 
++ Successfully concatenated 4 entries. 
 ```
 **Errors:**
 
@@ -125,12 +125,10 @@ Errors are reported including filename and line number.
 ```diff
 - File reference: `../file3.js` cannot be found. File `main.js`. Line: `22`. 
 
-- File reference: `../file4.js` imported before. File can only be imported once per output file. File `main.js`. Line: `27`. 
+- File reference: `../file4.js` imported before. File `main.js`. Line: `27`. 
+
+- File reference: `../file4.js` causes circular reference. File `main.js`. Line: `29`. 
 ```
 
 ## License
-This project is licensed under the MIT License.
-
-## Todo
-- Make `imported before` validation optional.
-- Make `circular reference` validation.
+This project is licensed under the MIT license.
