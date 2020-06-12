@@ -16,7 +16,7 @@ Assume a project containing multiple files in multiple directories.
 To include a file inside another, use `@import:(file.js)` on a (comment) line.
 
 ### Path
-*IMPORTANT* The path specified in the `@import:` statement must be relative to the containing file.
+**IMPORTANT:** The path specified in the `@import:` statement must be relative to the containing file.
 
 js
 ```js
@@ -125,12 +125,15 @@ function main() {
 
 Error checks:
 - Syntax.
-- Non existing references (optional).
-- Imported before.
+- Non existing references.
+- Imported before (optional with -u or --unique).
+- Circular reference.
 
 Errors are reported including filename and line number.
 
 ```diff
+- File reference malformed. Correct syntax is: @import:(path/file.ext). Notice parenthesis. File `main.js`. Line: `19`.
+
 - File reference: `../file3.js` cannot be found. File `main.js`. Line: `22`. 
 
 - File reference: `../file4.js` imported before. File `main.js`. Line: `27`. 
