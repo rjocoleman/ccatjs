@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const util = require("./util.js");
+const entry = require("./entry.js").entry;
 
 exports.concatJs = function (entryFile, destinationFile, silent, unique) {
 
@@ -10,122 +12,137 @@ exports.concatJs = function (entryFile, destinationFile, silent, unique) {
     var result = concatFiles(entryFile);
 
     // Write destination file.
-    writeFile(destinationFile, result.toString());
+    util.writeFile(destinationFile, result.toString());
 
     // OK.
     if (!silent) {
         console.log();
-        consoleSuccess(`Successfully concatenated ${_valFiles.length} entries.`);
+        util.consoleSuccess(`Successfully concatenated ${_allFiles.length} entries.`);
     }
 }
-
-var _valFiles = [];
-var _valErrors = [];
 
 function validateImportStatements(entryFile, uniqueOpt) {
 
     // Get full file name.
     var fullEntryFile = fs.realpathSync(entryFile);
 
-    // Add entry file.
-    _valFiles.push(new pair(null, fullEntryFile));
+    // Parse file reference tree.
+    parseFile(fullEntryFile, uniqueOpt);
 
-    var fileIndex = 0;
+    // Check errors.
+    if (_fileValidationErrors.size > 0) {
 
-    do {
-
-        var fullFileName = _valFiles[fileIndex].child;
-        var content = getFileContent(fullFileName);
-        var contentWithStaticFileRefs = relativeToStaticReferences(fullFileName, content);
-        var lines = getLines(contentWithStaticFileRefs);
-        var lineNumber = 0;
-        var parent = fullFileName;
-
-        do {
-            var line = lines[lineNumber];
-
-            if (isImportLine(line)) {
-
-                // Get filename from import statement.
-                var referenceFullFileName = getImportLineFileRef(line);
-                var child = referenceFullFileName;
-
-                // Check import line syntax.
-                if (!isImportLineValid(line)) {
-                    _valErrors.push(`File reference malformed. Correct syntax is: @import:(path/file.ext). Notice parenthesis. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                    lineNumber++;
-                    continue;
-                }
-
-                // Check if file exists.
-                if (!fileExists(referenceFullFileName)) {
-                    _valErrors.push(`File reference: \`${referenceFullFileName}\` cannot be found. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                    lineNumber++;
-                    continue;
-                }
-
-                if (uniqueOpt) {
-
-                    // Check if used before.
-                    if (containsChild(_valFiles, referenceFullFileName)) {
-                        _valErrors.push(`File reference: \`${referenceFullFileName}\` imported before. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                        lineNumber++;
-                        break;
-                    }
-
-                }
-
-                // Check for circular reference.
-                var pairReversed = new pair(child, parent);
-                if (containsPair(_valFiles, pairReversed)) {
-                    _valErrors.push(`File reference: \`${referenceFullFileName}\` causes circular reference. File \`${fullFileName}\`. Line: \`${lineNumber + 1}\`.`);
-                    lineNumber++;
-                    continue;
-                }
-
-                // If here, all is fine.
-                // =====
-
-                var p = new pair(parent, child);
-                _valFiles.push(p);
-
+        for (let val of _fileValidationErrors.values())
+        {
+            for (var i = 0; i < val.length; i++)
+            {
+                util.consoleError(val[i]);
             }
-            lineNumber++;
-        }
-        while (lineNumber < lines.length);
-        fileIndex++;
-    }
-    while (fileIndex < _valFiles.length);
-
-    if (_valErrors.length > 0) {
-
-        for (var i = 0; i < _valErrors.length; i++) {
-            consoleError(_valErrors[i]);
         }
 
         process.exit(1);
+
     }
+}
+
+var _entry = new entry('root');
+var _allFiles = [];
+var _fileValidationErrors = new Map();
+
+function parseFile(fileName, uniqueOpt) {
+
+    _allFiles.push(fileName);
+
+    var child = _entry.addChild(fileName);
+    _entry = child;
+
+    var content = util.getFileContent(fileName);
+    var contentParsed = relativeToStaticReferences(fileName, content);
+    var lines = util.getLines(contentParsed);
+
+    for (var lineNumber = 0; lineNumber < lines.length; lineNumber++) {
+
+        var line = lines[lineNumber];
+
+        if (isImportLine(line)) {
+
+            var referenceFile = getImportLineFileRef(line);
+
+            // Check import line syntax.
+            if (!isImportLineValid(line)) {
+                addFileValidationError(fileName, `File reference malformed. Correct syntax is: @import:(path/file.ext). Notice parenthesis. File \`${fileName}\`. Line: \`${lineNumber + 1}\`.`);
+                continue;
+            }
+
+            // Check if file exists.
+            if (!util.fileExists(referenceFile)) {
+                addFileValidationError(fileName, `File reference: \`${referenceFile}\` cannot be found. File \`${fileName}\`. Line: \`${lineNumber + 1}\`.`);
+                continue;
+            }
+
+            if (uniqueOpt) {
+
+                // Check if used before.
+                if (_allFiles.indexOf(referenceFile) != -1) {
+                    addFileValidationError(fileName, `File reference: \`${referenceFile}\` imported before. File \`${fileName}\`. Line: \`${lineNumber + 1}\`.`);
+                    continue;
+                }
+
+            }
+
+            // Check for circular reference.
+            if (_entry.isCircular(referenceFile)) {
+                addFileValidationError(fileName, `File reference: \`${referenceFile}\` causes circular reference. File \`${fileName}\`. Line: \`${lineNumber + 1}\`.`);
+                continue;
+            }
+
+            // Recursive.
+            parseFile(referenceFile, uniqueOpt);
+
+        }
+    }
+
+    _entry = _entry.parent;
 
 }
 
+function addFileValidationError(file, error) {
+    if (!_fileValidationErrors.has(file)) {
+        var errors = [];
+        errors.push(error);
+        _fileValidationErrors.set(file, errors);
+    }
+    else {
+        var _validationErrors = _fileValidationErrors.get(file);
+
+        // Only add error once.
+        if (_validationErrors.indexOf(error) == -1) {
+            _validationErrors.push(error);
+        }
+    }
+}
+
+// Do not call this function before validation passes.
 function concatFiles(entryFile) {
 
     // Get full file name.
     var fullEntryFile = fs.realpathSync(entryFile);
 
-    var content = getFileContent(fullEntryFile);
+    var content = util.getFileContent(fullEntryFile);
     var contentWithStaticFileRefs = relativeToStaticReferences(fullEntryFile, content);
-    var lines = getLines(contentWithStaticFileRefs);
+    var lines = util.getLines(contentWithStaticFileRefs);
     var lineNumber = 0;
 
     do {
+
         var line = lines[lineNumber];
 
         if (isImportLine(line)) {
+
             var refFullFileName = getImportLineFileRef(line);
-            var newContent = getFileContent(refFullFileName);
+            var newContent = util.getFileContent(refFullFileName);
             var newContentWithStaticFileRefs = relativeToStaticReferences(refFullFileName, newContent);
-            var newLines = getLines(newContentWithStaticFileRefs);
+            var newLines = util.getLines(newContentWithStaticFileRefs);
 
             // Remove reference line.
             lines.splice(lineNumber, 1);
@@ -142,7 +159,7 @@ function concatFiles(entryFile) {
     }
     while (lineNumber < lines.length);
 
-    return joinLines(lines);
+    return util.joinLines(lines);
 
 }
 
@@ -178,21 +195,10 @@ function setImportLineFileRef(line, fileRef) {
     return newImportLine;
 }
 
-function writeFile(fname, content) {
-    var pth = path.dirname(fname);
-
-    if (!fs.existsSync(pth)) {
-        fs.mkdirSync(pth, { recursive: true });
-    }
-
-    fs.writeFileSync(fname, content.toString());
-
-}
-
 function relativeToStaticReferences(fname, content) {
 
     var dirname = path.dirname(fname);
-    var lines = getLines(content);
+    var lines = util.getLines(content);
 
     for (var i = 0; i < lines.length; i++) {
 
@@ -209,68 +215,5 @@ function relativeToStaticReferences(fname, content) {
 
     }
 
-    return joinLines(lines);
-}
-
-// Helper functions.
-// =================
-
-function fileExists(fn) {
-    return fs.existsSync(fn);
-}
-
-function getFileContent(fn) {
-    if (!fs.existsSync(fn)) {
-        consoleError('File: `' + fn + '` not found.');
-        process.exit(1);
-    }
-
-    return fs.readFileSync(fn).toString();
-}
-
-function getLines(content) {
-    return content.split('\n');
-}
-
-function joinLines(lines) {
-    return lines.join('\n');
-}
-
-// Console functions.
-// ==================
-
-function consoleSuccess(msg) {
-    consoleMsg('\x1b[42m', '\x1b[37m', msg);
-}
-
-function consoleError(msg) {
-    consoleMsg('\x1b[41m', '\x1b[37m', msg);
-}
-
-function consoleMsg(bg, fg, msg) {
-    console.log(bg, fg, msg, '\x1b[0m');
-    console.log('\n');
-}
-
-class pair {
-    constructor(parent, child) {
-        this.parent = parent;
-        this.child = child;
-    }
-    equals(p) {
-        return (this.parent === p.parent && this.child === p.child);
-    }
-}
-
-function containsPair(a, p) {
-    for (var i = 0; i < a.length; i++) {
-        if (a[i].equals(p)) return true;
-    }
-    return false;
-}
-
-function containsChild(a, c) {
-    for (var i = 0; i < a.length; i++) {
-        if (a[i].child === c) return true;
-    }
+    return util.joinLines(lines);
 }

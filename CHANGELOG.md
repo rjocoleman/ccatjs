@@ -1,10 +1,13 @@
 # Changelog
 
-## 4.0.0
+## 4.0.1
 - Changed: `Used before` validation is now only optional (using -u or --unique).
 - Changed: improved output messages.
 - Added: circular reference detection validation.
 - Fix: bug not concatenating first line import statements sometimes.
+
+## 4.0.0
+- Unpublished.
 
 ## 3.0.2
 - Fix: typo in README.md.
