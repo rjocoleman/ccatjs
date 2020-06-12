@@ -75,6 +75,14 @@ function getSpecialArray() {
 }
 ```
 
+## Options
+```
+-u or --unique          Validates each file import to not be imported more than once.
+
+-s or --silent          When successful do not print any output message.
+    
+-v or --version         Prints the current version number.
+```
 ## Running ccatjs
 ```bash
 ccatjs <entryFile> <destFile>
@@ -117,7 +125,7 @@ function main() {
 
 Error checks:
 - Syntax.
-- Non existing references.
+- Non existing references (optional).
 - Imported before.
 
 Errors are reported including filename and line number.

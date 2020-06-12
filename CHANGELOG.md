@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.1.0
+- Updated README.
+
 ## 4.0.1
 - Changed: `Used before` validation is now only optional (using -u or --unique).
 - Changed: improved output messages.
