@@ -2,7 +2,7 @@
 Concatenate files using in-file @import: statements.
 
 ## Prerequisites
-NodeJS and npm installed
+NodeJS and npm installed.
 
 ## Installing
 Install the ccatjs package using npm:
