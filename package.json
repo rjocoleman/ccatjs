@@ -1,6 +1,6 @@
 {
   "name": "ccatjs",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "Concatenate files using in-file @import: statements.",
   "main": "index.js",
   "scripts": {
@@ -26,5 +26,10 @@
   "bugs": {
     "url": "https://github.com/mustinherit/ccatjs/issues"
   },
-  "homepage": "https://github.com/mustinherit/ccatjs#readme"
+  "homepage": "https://github.com/mustinherit/ccatjs#readme",
+  "dependencies": {
+    "globby": "^11.0.1",
+    "resolve-from": "^5.0.0",
+    "yargs": "^16.2.0"
+  }
 }

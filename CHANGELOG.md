@@ -1,5 +1,14 @@
 # Changelog
 
+## UNRELEASED FORK
+- Change default behaviour to resolve files using node's resolve algorithm.
+- Add argument to disable resolve, fall back to finding in the defined `basedir`.
+- Add support for `--basedir` argument to define base for resolving/finding.
+- Parse CLI arguments using [`yargs`](https://github.com/yargs/yargs) library.
+- Remove support for nested "import" statements.
+- TODO: Remove resolve/search cli argument and change to a different control string.
+- TODO: Fix tests
+
 ## 4.1.1
 - Updated README.
 
